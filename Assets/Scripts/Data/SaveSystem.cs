@@ -26,9 +26,7 @@ public static class SaveSystem
         }
     }
 
-    // ---------- Đọc ----------
-
-    /// Màn cao nhất đã mở khóa (màn 1 luôn mở).
+    /// Màn cao nhất đã mở khóa 
     public static int HighestUnlockedLevel => Data.highestUnlockedLevel;
 
     public static IReadOnlyList<int> CompletedLevels => Data.completedLevels;
@@ -37,9 +35,7 @@ public static class SaveSystem
 
     public static bool IsCompleted(int levelID) => Data.completedLevels.Contains(levelID);
 
-    // ---------- Ghi ----------
-
-    /// Đánh dấu hoàn thành màn levelID và mở khóa màn kế tiếp (không vượt quá totalLevels).
+    // Đánh dấu hoàn thành màn levelID và mở khóa màn kế tiếp
     public static void CompleteLevel(int levelID, int totalLevels = int.MaxValue)
     {
         if (!Data.completedLevels.Contains(levelID)) Data.completedLevels.Add(levelID);
@@ -50,14 +46,12 @@ public static class SaveSystem
         Save();
     }
 
-    /// Xóa toàn bộ tiến trình, về như mới chơi lần đầu.
+    /// Xóa toàn bộ tiến trình, về như mới chơi lần đầu
     public static void ResetProgress()
     {
         data = new SaveData();
         Save();
     }
-
-    // ---------- Lưu / nạp ----------
 
     static void Load()
     {
@@ -67,7 +61,7 @@ public static class SaveSystem
         if (!string.IsNullOrEmpty(json))
         {
             try { data = JsonUtility.FromJson<SaveData>(json); }
-            catch (Exception) { data = null; }   // file hỏng: bỏ qua, dùng dữ liệu mới
+            catch (Exception) { data = null; } 
         }
 
         if (data == null) data = new SaveData();

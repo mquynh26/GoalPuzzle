@@ -6,20 +6,35 @@ public class PlayerController : MonoBehaviour
 {
     public PlayerCharacter player;
     public Ball ball;
+    
+    public float respawnDelay = 0.4f;
 
-    bool busy;   // true khi bóng đang lăn: chặn mọi thao tác
+    bool busy;                  // true khi bóng đang lăn
+    Vector2Int? reservedCell;   // ô cũ của bóng khi bóng đang bay ra ngoài
 
     public bool IsBusy => busy;
+
+    // Dừng mọi thứ đang chạy và mở khóa input
+    public void ResetState()
+    {
+        StopAllCoroutines();
+        busy = false;
+        reservedCell = null;
+    }
 
     void Update()
     {
         if (!IsPlaying() || player == null) return;
+        if (player.IsMoving) return;   // đang bước
 
-        if (TryGetDirection(out Direction d)) HandleMove(d);                    // đi: luôn được
-        else if (Input.GetKeyDown(KeyCode.Space) && !busy) HandleShoot();       // sút: chỉ khi bóng đã dừng
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (!busy) HandleShoot();   // bóng đang lăn thì không sút
+            return;
+        }
+
+        if (TryGetDirection(out Direction d)) HandleMove(d);
     }
-
-    // ---------- Đọc phím ----------
 
     bool TryGetDirection(out Direction d)
     {
@@ -31,18 +46,17 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    // ---------- Đi ----------
-
+    // Đi
     void HandleMove(Direction d)
     {
         player.Face(d);   // luôn quay mặt, kể cả khi bị chặn
 
         Vector2Int target = player.posIndex + d.ToVector();
         if (!RuleChecker.Instance.CanWalk(target)) return;
+        if (reservedCell.HasValue && reservedCell.Value == target) return;   // ô này dành cho bóng quay về
 
-        if (!busy) RecordUndo(); 
+        if (!busy) RecordUndo();   // bước đi lúc bóng đang lăn gộp chung vào lượt sút, không tách riêng
         player.Move(target);
-        PlaySound(Sfx.Move);
     }
 
     // ---------- Sút ----------
@@ -50,8 +64,7 @@ public class PlayerController : MonoBehaviour
     void HandleShoot()
     {
         Direction dir = player.facingDir;
-        Vector2Int front = player.FrontCell;
-        GridObject target = GridManager.Instance.GetAt(front);
+        GridObject target = GridManager.Instance.GetAt(player.FrontCell);
 
         if (target is Ball b)
         {
@@ -65,16 +78,14 @@ public class PlayerController : MonoBehaviour
         {
             PushCone(cone, dir);
         }
-        // Ô trước mặt trống hoặc là hàng rào: không có gì xảy ra
     }
 
     void ShootBall(Ball b, Direction dir)
     {
         RollResult result = RuleChecker.Instance.SimulateRoll(b, dir);
-        if (result.IsEmpty) return;   // bóng bị chặn ngay, không tính là một lượt
+        if (result.IsEmpty) return;
 
         RecordUndo();
-        PlaySound(Sfx.Kick);
         StartCoroutine(RunRoll(result));
     }
 
@@ -82,7 +93,6 @@ public class PlayerController : MonoBehaviour
     {
         RecordUndo();
         npc.Rotate();
-        PlaySound(Sfx.Rotate);
 
         // Sau khi xoay, nếu bóng đang nằm yên ngay trước mặt một NPC thì NPC đá bóng đi
         if (ball != null)
@@ -100,18 +110,14 @@ public class PlayerController : MonoBehaviour
         RecordUndo();
         cone.MoveCone(to);
     }
-    
-    public void ResetState()
-    {
-        StopAllCoroutines();
-        busy = false;
-    }
-
-    // ---------- Chạy một lần bóng lăn ----------
 
     IEnumerator RunRoll(RollResult result)
     {
         busy = true;
+        Vector2Int origin = ball.posIndex;   // ô bóng đứng trước khi bị sút
+
+        // Bóng sắp bay ra ngoài và xuất hiện lại ở ô này nên không cho người chơi bước vào
+        reservedCell = result.outOfBounds ? origin : (Vector2Int?)null;
 
         // Cú đá khi bóng đang nằm yên (pathIndex = -1) thì NPC đá ngay lập tức
         foreach (KickEvent k in result.kicks)
@@ -119,7 +125,7 @@ public class PlayerController : MonoBehaviour
             if (k.pathIndex == -1) k.npc.Kick();
         }
 
-        // Bóng lăn qua từng ô. Tới ô nào có NPC đá thì chạy animation NPC đó
+        // Bóng lăn qua từng ô
         yield return ball.Roll(result.path, i =>
         {
             foreach (KickEvent k in result.kicks)
@@ -128,19 +134,24 @@ public class PlayerController : MonoBehaviour
             }
         });
 
-        // Bóng đập cọc: cọc biến mất
-        if (ball.RollCompleted && result.hitCone != null)
+        if (result.outOfBounds && ball.RollCompleted)
         {
+            // Bóng ra khỏi lưới
+            yield return ball.RollOffScreen(result.exitDir);
+            yield return new WaitForSeconds(respawnDelay);
+            ball.Respawn(origin);
+        }
+        else if (ball.RollCompleted && result.hitCone != null)
+        {
+            // Bóng đập cọc
             result.hitCone.Disappear();
-            PlaySound(Sfx.ConeBreak);
         }
 
+        reservedCell = null;
         if (RuleChecker.Instance.CheckWin(ball)) OnWin();
 
         busy = false;
     }
-
-    // ================= Các chỗ sẽ nối với file sau =================
 
     bool IsPlaying()
     {
@@ -150,11 +161,6 @@ public class PlayerController : MonoBehaviour
     void RecordUndo()
     {
         if (UndoManager.Instance != null) UndoManager.Instance.Record();
-    }
-
-    void PlaySound(Sfx sfx)
-    {
-        if (AudioManager.Instance != null) AudioManager.Instance.Play(sfx);
     }
 
     void OnWin()

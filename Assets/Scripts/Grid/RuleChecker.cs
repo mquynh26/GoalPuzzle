@@ -14,9 +14,11 @@ public class RollResult
     public List<Vector2Int> path = new List<Vector2Int>();   // các ô bóng đi qua, theo thứ tự
     public TrainingCone hitCone;                             // cọc bị bóng đập (nếu có)
     public List<KickEvent> kicks = new List<KickEvent>();    // các cú đá của NPC
+    public bool outOfBounds;                                 // bóng đã lăn ra khỏi lưới
+    public Direction exitDir;                                // hướng bóng đang lăn lúc ra khỏi lưới
 
-    /// Không có gì xảy ra: bóng không nhúc nhích và không phá cọc nào.
-    public bool IsEmpty => path.Count == 0 && hitCone == null;
+    /// Không có gì xảy ra: bóng không nhúc nhích, không phá cọc, không ra khỏi lưới.
+    public bool IsEmpty => path.Count == 0 && hitCone == null && !outOfBounds;
 }
 
 /// <summary>
@@ -38,17 +40,17 @@ public class RuleChecker : MonoBehaviour
     // ---------- Di chuyển ----------
 
     /// Cầu thủ có bước vào ô này được không: trong biên và không bị vật nào chiếm.
+    /// Ô ghi bàn không bị chiếm nên đi vào được.
     public bool CanWalk(Vector2Int cell)
     {
         GridManager g = GridManager.Instance;
         return g.InBounds(cell) && g.GetAt(cell) == null;
     }
 
-    /// Cọc có đẩy sang ô này được không: như CanWalk, và không được đẩy lên ô khung thành
-    /// (nếu không cọc sẽ chắn mất đường bóng vào gôn).
+    /// Cọc có đẩy sang ô này được không: như CanWalk. Cọc được phép vào cả ô khung thành.
     public bool CanMoveConeTo(Vector2Int cell)
     {
-        return CanWalk(cell) && !GridManager.Instance.IsGoal(cell);
+        return CanWalk(cell);
     }
 
     // ---------- Bóng lăn ----------
@@ -71,7 +73,8 @@ public class RuleChecker : MonoBehaviour
     }
 
     /// Mô phỏng bóng bị sút theo hướng dir từ vị trí hiện tại của nó.
-    /// Dừng khi gặp: biên, hàng rào, cọc, người, NPC (từ bên hông/sau lưng), hoặc ô khung thành.
+    /// Dừng khi gặp: hàng rào, cột gôn, cọc, người, NPC (từ bên hông/sau lưng), hoặc ô khung thành.
+    /// Ra khỏi lưới thì đánh dấu outOfBounds (bóng sẽ lăn khỏi màn hình rồi xuất hiện lại ở ô cũ).
     /// Bóng đi vào ô trước mặt một NPC thì bị đá, đổi sang hướng nhìn của NPC.
     public RollResult SimulateRoll(Ball ball, Direction dir)
     {
@@ -83,7 +86,13 @@ public class RuleChecker : MonoBehaviour
         for (int step = 0; step < MaxSteps; step++)
         {
             Vector2Int next = cur + dir.ToVector();
-            if (!g.InBounds(next)) break;
+
+            if (!g.InBounds(next))
+            {
+                result.outOfBounds = true;
+                result.exitDir = dir;
+                break;
+            }
 
             // Ô bóng xuất phát vẫn đang ghi tên chính bóng nên coi như trống
             GridObject obj = g.GetAt(next);
@@ -124,26 +133,12 @@ public class RuleChecker : MonoBehaviour
         return result;
     }
 
-    // ---------- Thắng / bế tắc ----------
+    // ---------- Thắng ----------
 
     /// Bóng đang nằm trong ô khung thành.
     public bool CheckWin(Ball ball)
     {
         return GridManager.Instance.IsGoal(ball.posIndex);
-    }
-
-    /// Bế tắc: bóng kẹt trong góc, bị biên hoặc hàng rào chặn ở hai hướng vuông góc
-    /// và không nằm trong khung thành. Chỉ tính hàng rào và biên vì đó là vật chặn vĩnh viễn.
-    public bool CheckDeadlock(Ball ball)
-    {
-        if (CheckWin(ball)) return false;
-
-        bool up    = IsPermanentBlock(ball.posIndex + Vector2Int.up);
-        bool down  = IsPermanentBlock(ball.posIndex + Vector2Int.down);
-        bool left  = IsPermanentBlock(ball.posIndex + Vector2Int.left);
-        bool right = IsPermanentBlock(ball.posIndex + Vector2Int.right);
-
-        return (up || down) && (left || right);
     }
 
     bool IsPermanentBlock(Vector2Int cell)

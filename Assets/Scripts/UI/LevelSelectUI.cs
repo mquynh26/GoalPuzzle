@@ -130,7 +130,6 @@ public class LevelSelectUI : MonoBehaviour
 
         selected = target;
         MoveCursor();
-        if (AudioManager.Instance != null) AudioManager.Instance.Play(Sfx.Click);
     }
 
     void EnterSelected()

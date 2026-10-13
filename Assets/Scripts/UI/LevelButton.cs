@@ -17,15 +17,11 @@ public enum LevelState
 /// </summary>
 public class LevelButton : GridObject
 {
-    [Header("Hiển thị")]
-    [Tooltip("Khoảng cách giữa hai chữ số, tính bằng đơn vị world (1 pixel của sprite 32px = 0.03125)")]
     public float digitGap = 0f;
     public int sortingOrder = 5;
-
-    [Header("Màu theo trạng thái (tô lên sprite chữ số màu trắng)")]
+    
     public Color lockedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
     public Color openColor = Color.white;
-    [Tooltip("Màu màn đã hoàn thành. Mặc định trùng màu màn đã mở, đổi nếu muốn phân biệt.")]
     public Color completedColor = Color.white;
 
     /// Vị trí của màn trong LevelDatabase (0-based).

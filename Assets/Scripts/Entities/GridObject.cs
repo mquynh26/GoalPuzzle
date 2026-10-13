@@ -6,12 +6,24 @@ public abstract class GridObject : MonoBehaviour
 {
     public Vector2Int posIndex;
 
-    /// <summary>
-    /// Đặt hình ảnh của vật thể về đúng tâm ô posIndex.
-    /// </summary>
+    SpriteRenderer sr;
+    
+    public Vector3 WorldPosFor(Vector2Int cell)
+    {
+        Vector3 center = GridManager.Instance.CellToWorld(cell);
+
+        if (sr == null) sr = GetComponent<SpriteRenderer>();
+        if (sr == null || sr.sprite == null) return center;
+
+        // Tâm hình của sprite tính từ pivot, đã nhân scale
+        Vector3 localCenter = Vector3.Scale(sr.sprite.bounds.center, transform.lossyScale);
+        if (sr.flipX) localCenter.x = -localCenter.x;
+
+        return center - transform.rotation * localCenter;
+    }
+
     public virtual void Show()
     {
-        // TODO (File 6): sau khi có GridManager, thay dòng này bằng:
-        transform.position = GridManager.Instance.CellToWorld(posIndex);
+        transform.position = WorldPosFor(posIndex);
     }
 }

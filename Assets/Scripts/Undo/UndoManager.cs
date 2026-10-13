@@ -6,11 +6,10 @@ using UnityEngine;
 public class UndoManager : MonoBehaviour
 {
     public static UndoManager Instance { get; private set; }
-
-    [Tooltip("Dùng để chặn Undo khi bóng đang lăn")]
+    
     public PlayerController playerController;
 
-    /// LevelManager (hoặc file test) đăng ký hai hàm này khi nạp màn.
+    /// LevelManager đăng ký hai hàm này khi nạp màn
     public Func<GameState> capture;
     public Action<GameState> apply;
 
@@ -29,13 +28,13 @@ public class UndoManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z)) Undo();
     }
 
-    /// Xóa toàn bộ lịch sử (khi nạp màn mới hoặc chơi lại).
+    /// Xóa toàn bộ lịch sử
     public void Clear()
     {
         stack.Clear();
     }
 
-    /// Chụp trạng thái hiện tại và đẩy lên chồng. Gọi TRƯỚC khi thay đổi gì.
+    // Chụp trạng thái hiện tại và đẩy lên chồng
     public void Record()
     {
         if (capture == null) return;
@@ -43,14 +42,13 @@ public class UndoManager : MonoBehaviour
         stack.Push(capture());
     }
 
-    /// Quay lại trạng thái trước hành động gần nhất.
+    // Quay lại trạng thái trước hành động gần nhất
     public void Undo()
     {
         if (!CanUndo || apply == null) return;
-        if (playerController != null && playerController.IsBusy) return;   // bóng đang lăn: không Undo
+        if (playerController != null && playerController.IsBusy) return;   // bóng đang lăn không Undo
         if (GameManager.Instance != null && GameManager.Instance.State != GamePhase.Playing) return;
 
         apply(stack.Pop());
-        if (AudioManager.Instance != null) AudioManager.Instance.Play(Sfx.Undo);
     }
 }

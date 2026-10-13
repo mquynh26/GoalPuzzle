@@ -9,15 +9,15 @@ public class GridManager : MonoBehaviour
 
     public Grid grid;
     public Vector2Int size;   // x = số cột, y = số hàng của màn đang chơi
-
-    [Header("Căn lưới")]
-    [Tooltip("Dời lưới logic theo đơn vị world. Ô (0,0) sẽ nằm ở góc dưới trái + offset.")]
+    
     public Vector2 gridOffset = Vector2.zero;
+    
+    public float outerMargin = 1f;
 
-    // Ô bị chiếm bởi vật thể có thể chặn đường Player, Ball, NPC, Fence, Cone
+    // Ô bị chiếm bởi vật thể có thể chặn đường: Player, Ball, NPC, Fence, Cone, cột gôn
     readonly Dictionary<Vector2Int, GridObject> occupied = new Dictionary<Vector2Int, GridObject>();
 
-    // Ô khung thành không nằm trong occupied để người và bóng đi vào được
+    // Ô khung thành 0 nằm trong occupied để người, bóng và cọc đi vào được
     readonly HashSet<Vector2Int> goals = new HashSet<Vector2Int>();
 
     Vector3 Offset => new Vector3(gridOffset.x, gridOffset.y, 0f);
@@ -28,7 +28,7 @@ public class GridManager : MonoBehaviour
         if (grid == null) grid = GetComponent<Grid>();
     }
 
-    // Gọi mỗi khi dựng màn mới đặt kích thước và xóa sạch dữ liệu cũ
+    /// Gọi mỗi khi dựng màn mới đặt kích thước và xóa sạch dữ liệu cũ
     public void Init(Vector2Int newSize)
     {
         size = newSize;
@@ -36,41 +36,75 @@ public class GridManager : MonoBehaviour
         goals.Clear();
     }
 
-    // Đổi tọa độ
-    // Ô (x, y) sang vị trí tâm ô trong world
+    /// Ô (x, y) -> vị trí tâm ô trong world
     public Vector3 CellToWorld(Vector2Int cell)
     {
         return grid.GetCellCenterWorld(new Vector3Int(cell.x, cell.y, 0)) + Offset;
     }
 
-    // Vị trí world sang ô (x, y)
+    /// Vị trí world -> ô (x, y)
     public Vector2Int WorldToCell(Vector3 world)
     {
         Vector3Int c = grid.WorldToCell(world - Offset);
         return new Vector2Int(c.x, c.y);
     }
 
-    // Biên
+    // Biên 
+
     public bool InBounds(Vector2Int cell)
     {
         return cell.x >= 0 && cell.y >= 0 && cell.x < size.x && cell.y < size.y;
     }
 
-    //Ô bị chiếm
-    // Lấy vật thể đang đứng ở ô này, không có thì trả về null
+    // Điểm bóng biến mất ngay sau mép màn hình
+    public Vector3 OuterLimit(Vector3 from, Direction dir)
+    {
+        float pad = outerMargin * grid.cellSize.x;
+        Camera cam = Camera.main;
+
+        float left, right, bottom, top;
+        if (cam != null && cam.orthographic)
+        {
+            float halfH = cam.orthographicSize;
+            float halfW = halfH * cam.aspect;
+            Vector3 c = cam.transform.position;
+            left = c.x - halfW; right = c.x + halfW;
+            bottom = c.y - halfH; top = c.y + halfH;
+        }
+        else
+        {
+            // Không có camera thì lấy mép lưới
+            Vector3 cell = grid.cellSize;
+            Vector3 min = CellToWorld(Vector2Int.zero) - cell / 2f;
+            Vector3 max = CellToWorld(size - Vector2Int.one) + cell / 2f;
+            left = min.x; right = max.x; bottom = min.y; top = max.y;
+        }
+
+        switch (dir)
+        {
+            case Direction.Up:    from.y = top + pad; break;
+            case Direction.Down:  from.y = bottom - pad; break;
+            case Direction.Right: from.x = right + pad; break;
+            default:              from.x = left - pad; break;
+        }
+        return from;
+    }
+    
+
+    // Vật thể đang đứng ở ô này, không có thì trả về null
     public GridObject GetAt(Vector2Int cell)
     {
         occupied.TryGetValue(cell, out GridObject obj);
         return obj;
     }
-
+    
     // Đăng ký vật thể vào ô posIndex của nó
     public void Place(GridObject obj)
     {
         occupied[obj.posIndex] = obj;
     }
 
-    /// Gỡ vật thể khỏi ô nó đang chiếm (chỉ gỡ nếu đúng là nó).
+    // Gỡ vật thể khỏi ô nó đang chiếm
     public void Remove(GridObject obj)
     {
         if (occupied.TryGetValue(obj.posIndex, out GridObject current) && current == obj)
@@ -79,27 +113,25 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    /// Chuyển vật thể sang ô mới: cập nhật cả posIndex lẫn bảng occupied.
-    /// (Chưa cập nhật hình ảnh, hãy gọi obj.Show() sau đó.)
+    // Chuyển vật thể sang ô mới cập nhật cả posIndex lẫn bảng occupied
     public void Move(GridObject obj, Vector2Int to)
     {
         Remove(obj);
         obj.posIndex = to;
         Place(obj);
     }
-
-    // ---------- Khung thành ----------
+    
 
     public void AddGoal(Vector2Int cell) => goals.Add(cell);
 
     public bool IsGoal(Vector2Int cell) => goals.Contains(cell);
 
-    // ================== DEBUG: vẽ khung lưới + đánh số ô ==================
+    // DEBUG: vẽ khung lưới + đánh số ô
 
     [Header("Debug")]
     public bool showGridGizmos = true;     // vẽ đường kẻ lưới
-    public bool showCellLabels = true;     // hiện số ô "x,y" (chỉ thấy ở Scene view)
-    public Vector2Int previewSize = new Vector2Int(6, 5);   // kích thước xem trước khi chưa chạy game
+    public bool showCellLabels = true;     // hiện số ô "x,y"
+    public Vector2Int previewSize = new Vector2Int(13, 7);   // kích thước xem trước khi chưa chạy game
     public Color gridColor = new Color(1f, 1f, 1f, 0.6f);
 
     void OnDrawGizmos()
@@ -112,7 +144,7 @@ public class GridManager : MonoBehaviour
         // Đang chơi thì dùng size thật, chưa chơi thì dùng previewSize
         Vector2Int s = (size.x > 0 && size.y > 0) ? size : previewSize;
 
-        // 1) Đường kẻ lưới (đã cộng offset)
+        // Đường kẻ lưới (đã cộng offset)
         Gizmos.color = gridColor;
         for (int x = 0; x <= s.x; x++)
         {
@@ -124,10 +156,6 @@ public class GridManager : MonoBehaviour
             Gizmos.DrawLine(g.CellToWorld(new Vector3Int(0, y, 0)) + Offset,
                             g.CellToWorld(new Vector3Int(s.x, y, 0)) + Offset);
         }
-
-        // Chấm đánh dấu gốc ô (0,0)
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawSphere(g.CellToWorld(Vector3Int.zero) + Offset, 0.12f);
 
         if (!Application.isPlaying)
         {

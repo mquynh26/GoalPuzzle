@@ -411,6 +411,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 3781212217782601509, guid: e558643a1d246f948b7e1d4c62f437f0, type: 3}
   ball: {fileID: 7104237601546354380, guid: f0e0c3cff38b6924cb4a6ba5fedb1966, type: 3}
+  respawnDelay: 0.4
 --- !u!1 &217134644
 GameObject:
   m_ObjectHideFlags: 0

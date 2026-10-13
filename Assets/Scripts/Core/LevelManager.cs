@@ -6,22 +6,18 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
-
-    [Header("Dữ liệu")]
+    
     public LevelDatabase database;
     public int startLevelIndex = 0;
-    [Tooltip("Tự nạp màn khi vào scene. Tắt đi khi đã có menu chọn màn (file UI).")]
     public bool autoLoadOnStart = true;
-
-    [Header("Prefab")]
+    
     public PlayerCharacter playerPrefab;
     public Ball ballPrefab;
     public Goal goalPrefab;
     public Fence fencePrefab;
     public TrainingCone conePrefab;
     public NPC npcPrefab;
-
-    [Header("Tham chiếu trong scene")]
+    
     public Transform objectsParent;               // Grid/Objects
     public PlayerController playerController;     // GameSystems/PlayerController
 
@@ -29,9 +25,6 @@ public class LevelManager : MonoBehaviour
     public LevelData CurrentData { get; private set; }
     public int CurrentLevelID => CurrentData != null ? CurrentData.levelID : 0;
     public bool HasNext => database != null && database.HasLevel(CurrentIndex + 1);
-
-    /// Báo cho UI biết đã nạp xong màn (tham số: index của màn).
-    public event Action<int> LevelLoaded;
 
     PlayerCharacter player;
     Ball ball;
@@ -57,8 +50,6 @@ public class LevelManager : MonoBehaviour
 
     void Update()
     {
-        // TẠM để test, xóa khi đã có UI:
-        // R = chơi lại, N = màn tiếp, F12 = xóa tiến trình, M = bật/tắt âm, F11 = toàn màn hình
         if (Input.GetKeyDown(KeyCode.R)) RestartLevel();
         if (Input.GetKeyDown(KeyCode.N)) NextLevel();
         if (Input.GetKeyDown(KeyCode.F12)) { SaveSystem.ResetProgress(); Debug.Log("Đã xóa tiến trình"); }
@@ -66,9 +57,7 @@ public class LevelManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F11)) { GameSettings.ToggleFullScreen(); Debug.Log("Toàn màn hình: " + GameSettings.IsFullScreen); }
     }
 
-    // ================= API công khai =================
-
-    /// Nạp màn theo index trong database (0-based). Trả về false nếu thất bại.
+    // Nạp màn theo index trong database (0-based). Trả về false nếu thất bại.
     public bool LoadLevel(int index)
     {
         if (!ValidateReferences()) return false;
@@ -76,7 +65,6 @@ public class LevelManager : MonoBehaviour
         LevelData data = database.GetData(index);
         if (data == null)
         {
-            Debug.LogError("LevelManager: không có màn ở index " + index);
             return false;
         }
         return Build(index, data);
@@ -87,7 +75,7 @@ public class LevelManager : MonoBehaviour
         if (CurrentIndex >= 0) LoadLevel(CurrentIndex);
     }
 
-    /// Sang màn kế tiếp. Trả về false nếu đã hết màn.
+    // Sang màn kế tiếp, trả về false nếu đã hết màn.
     public bool NextLevel()
     {
         return HasNext && LoadLevel(CurrentIndex + 1);
@@ -100,8 +88,6 @@ public class LevelManager : MonoBehaviour
         CurrentIndex = -1;
         CurrentData = null;
     }
-
-    // ================= Dựng màn =================
 
     bool Build(int index, LevelData data)
     {
@@ -148,7 +134,7 @@ public class LevelManager : MonoBehaviour
                         break;
 
                     case CellType.Goal:
-                        goalCenters.Add(cell);   // dựng thành 5 ô sau khi duyệt xong lưới
+                        goalCenters.Add(cell);
                         break;
                 }
             }
@@ -164,20 +150,16 @@ public class LevelManager : MonoBehaviour
 
         playerController.player = player;
         playerController.ball = ball;
-
-        // Nối Undo với màn hiện tại
+        
+        //Undo
         UndoManager.Instance.capture = Capture;
         UndoManager.Instance.apply = ApplyState;
         UndoManager.Instance.Clear();
 
         if (GameManager.Instance != null) GameManager.Instance.SetPhase(GamePhase.Playing);
-
-        LevelLoaded?.Invoke(index);
         return true;
     }
-
-    /// Mỗi ô Gôn vẽ trong LevelData được mở rộng thành 5 ô ngang:
-    /// 2 cột ở hai đầu (chiếm ô), 3 ô giữa dùng để kiểm tra bóng vào.
+    
     void BuildGoals()
     {
         GridManager g = GridManager.Instance;
@@ -203,18 +185,15 @@ public class LevelManager : MonoBehaviour
 
                 if (GoalLayout.IsPostOffset(dx))
                 {
-                    // Cột gôn: vô hình, chiếm ô nên người và bóng không đi qua được
                     CreateInvisible<Fence>(cell, "GoalPost" + suffix, true);
                 }
                 else if (dx == 0)
                 {
-                    // Ô giữa: prefab Goal có hình, không chiếm ô
                     Spawn(goalPrefab, cell, Group("Goals"), "Goal" + suffix, false);
                     g.AddGoal(cell);
                 }
                 else
                 {
-                    // Hai ô ghi bàn hai bên: vô hình, không chiếm ô
                     CreateInvisible<Goal>(cell, "Goal" + suffix, false);
                     g.AddGoal(cell);
                 }
@@ -222,7 +201,7 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    /// Tạo vật thể trên lưới không có hình (không prefab, không sprite).
+    // Tạo vật thể trên lưới không có hình
     T CreateInvisible<T>(Vector2Int cell, string objName, bool block) where T : GridObject
     {
         var go = new GameObject(objName);
@@ -230,7 +209,7 @@ public class LevelManager : MonoBehaviour
 
         T obj = go.AddComponent<T>();
         obj.posIndex = cell;
-        obj.Show();                                    // không có sprite nên đặt ngay tâm ô
+        obj.Show();                                   
         if (block) GridManager.Instance.Place(obj);
         return obj;
     }
@@ -249,7 +228,7 @@ public class LevelManager : MonoBehaviour
         ball = null;
     }
 
-    /// Nhóm con của Objects (Goals, Fences, Cones, NPCs), tạo khi cần, đúng như sơ đồ Hierarchy.
+    // Nhóm con của Objects
     Transform Group(string name)
     {
         if (!groups.TryGetValue(name, out Transform t) || t == null)
@@ -272,9 +251,7 @@ public class LevelManager : MonoBehaviour
         return obj;
     }
 
-    // ================= Undo =================
-
-    /// Chụp trạng thái hiện tại.
+    //Undo
     public GameState Capture()
     {
         var s = new GameState();
@@ -286,19 +263,19 @@ public class LevelManager : MonoBehaviour
         return s;
     }
 
-    /// Khôi phục về trạng thái đã chụp.
+    // Khôi phục về trạng thái đã cap
     public void ApplyState(GameState s)
     {
         GridManager g = GridManager.Instance;
 
-        // 1) Gỡ mọi vật thể thay đổi được khỏi bảng ô bị chiếm (gỡ TRƯỚC khi đổi posIndex)
+        // gỡ mọi vật thể thay đổi được khỏi bảng ô bị chiếm
         g.Remove(player);
         g.Remove(ball);
         foreach (NPC n in npcs) g.Remove(n);
         foreach (TrainingCone c in cones) { g.Remove(c); Destroy(c.gameObject); }
         cones.Clear();
 
-        // 2) Đặt lại vị trí và hướng
+        // Đặt lại vị trí và hướng
         player.posIndex = s.playerPos;
         player.Face(s.playerFacing);
         g.Place(player);
@@ -316,15 +293,14 @@ public class LevelManager : MonoBehaviour
             npcs[i].Show();
         }
 
-        // 3) Tạo lại các cọc còn lại (kể cả cọc đã bị phá trước đó)
+        //Tạo lại các cọc còn lại
         foreach (Vector2Int pos in s.cones)
         {
             cones.Add(Spawn(conePrefab, pos, Group("Cones"), "Cone_" + pos.x + "_" + pos.y));
         }
     }
 
-    // ================= Kiểm tra tham chiếu =================
-
+    //Kiểm tra tham chiếu
     bool ValidateReferences()
     {
         bool ok = true;

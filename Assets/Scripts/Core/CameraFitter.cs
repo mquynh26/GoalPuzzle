@@ -4,12 +4,7 @@ using UnityEngine;
 
 public class CameraFitter : MonoBehaviour
 {
-    [Tooltip("Các Renderer tạo nên nền sân (Floor, cầu gôn, cờ góc nếu là object riêng...). " +
-             "Để trống = tự lấy object tên 'Floor'.")]
     public Renderer[] mapRenderers;
-
-    [Tooltip("Số ô bỏ bớt ở mép trên khi canh camera. 0.5 = hàng trên cùng chỉ lấy một nửa ô " +
-             "(camera dời xuống và zoom vừa theo phần còn lại).")]
     public float trimTop = 0.5f;
 
     Camera cam;
@@ -31,8 +26,7 @@ public class CameraFitter : MonoBehaviour
         // Đổi cỡ cửa sổ hoặc tỉ lệ thì canh lại
         if (Screen.width != lastW || Screen.height != lastH) Fit();
     }
-
-    [ContextMenu("Fit")]
+    
     public void Fit()
     {
         if (!TryGetBounds(out Bounds b)) return;

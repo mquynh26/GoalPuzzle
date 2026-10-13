@@ -35,16 +35,12 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         GamePhase p = GameManager.Instance.State;
+        
+        if (Input.GetKeyDown(KeyCode.M)) SetSound(!GameSettings.IsSoundEnabled);
 
-        // Các phím tắt cài đặt và hướng dẫn có thể sử dụng ở bất cứ đâu
-        if (Input.GetKeyDown(KeyCode.M))
-            SetSound(!GameSettings.IsSoundEnabled);
+        if (Input.GetKeyDown(KeyCode.F)) SetFullScreen(!GameSettings.IsFullScreen);
 
-        if (Input.GetKeyDown(KeyCode.F))
-            SetFullScreen(!GameSettings.IsFullScreen);
-
-        if (Input.GetKeyDown(KeyCode.G))
-            OpenGuide();
+        if (Input.GetKeyDown(KeyCode.G)) OpenGuide();
         
         
         // Esc: đóng bảng hướng dẫn đang mở
@@ -56,15 +52,14 @@ public class UIManager : MonoBehaviour
                 return;
             }
 
-            // Đang ở màn chọn màn: quay về menu chính
+            // Đang ở màn chọn màn thi quay về menu chính
             if (p == GamePhase.Menu && IsOpen(levelSelectPanel))
             {
-                PlayClick();
                 ShowMainMenu();
                 return;
             }
 
-            // Đang chơi: quay về màn chọn màn
+            // Đang chơi thì quay về màn chọn màn
             if (p == GamePhase.Playing)
             {
                 GoToLevelSelect();
@@ -72,7 +67,7 @@ public class UIManager : MonoBehaviour
             }
         }
         
-        // Menu chính: nhấn Space để vào chọn màn
+        // Menu chính thì nhấn Space để vào chọn màn
         if (p == GamePhase.Menu && IsOpen(mainMenuPanel))
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -81,8 +76,6 @@ public class UIManager : MonoBehaviour
             return;
         }
     }
-
-    // ================= Theo trạng thái game =================
 
     void ApplyPhase(GamePhase p)
     {
@@ -98,8 +91,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // ================= Menu chính / chọn màn =================
-
     public void ShowMainMenu()
     {
         HideOverlays();
@@ -108,16 +99,13 @@ public class UIManager : MonoBehaviour
         Show(mainMenuPanel, true);
         Show(levelSelectPanel, false);
     }
-
-    /// Nút "Chơi" ở menu chính.
+    
     public void OpenLevelSelect()
     {
-        PlayClick();
         Show(mainMenuPanel, false);
         Show(levelSelectPanel, true);   // LevelSelectUI tự dựng lại danh sách nút khi panel bật
     }
-
-    /// Nút "Thoát màn" ở bảng tạm dừng, nút Exit trên HUD, và khi hết màn.
+    
     public void GoToLevelSelect()
     {
         HideOverlays();
@@ -127,7 +115,7 @@ public class UIManager : MonoBehaviour
         Show(levelSelectPanel, true);
     }
 
-    /// LevelButton gọi hàm này. index là vị trí màn trong database (0-based).
+    // LevelButton gọi hàm này index là vị trí màn trong database
     public void StartLevel(int index)
     {
         LevelData data = LevelManager.Instance.database.GetData(index);
@@ -137,40 +125,29 @@ public class UIManager : MonoBehaviour
         {
             return;
         }
-
-        PlayClick();
         LevelManager.Instance.LoadLevel(index);   // nạp xong tự chuyển sang Playing
     }
-
-    // ================= Hướng dẫn / cài đặt =================
+    
 
     public void OpenGuide()
     {
-        PlayClick(); // đang xem thì không chơi được
         Show(guidePanel, true);
     }
 
     public void CloseGuide()
     {
-        PlayClick();
         Show(guidePanel, false);
     }
-
-    /// Gán vào Toggle Âm thanh: OnValueChanged -> Dynamic bool.
+    
     public void SetSound(bool on)
     {
         GameSettings.SetSoundEnabled(on);
-        PlayClick();
     }
-
-    /// Gán vào Toggle Toàn màn hình: OnValueChanged -> Dynamic bool.
+    
     public void SetFullScreen(bool on)
     {
         GameSettings.SetFullScreen(on);
-        PlayClick();
     }
-    
-    // ================= Tiện ích =================
 
     void HideOverlays()
     {
@@ -186,9 +163,5 @@ public class UIManager : MonoBehaviour
     {
         return go != null && go.activeSelf;
     }
-
-    static void PlayClick()
-    {
-        if (AudioManager.Instance != null) AudioManager.Instance.Play(Sfx.Click);
-    }
+    
 }

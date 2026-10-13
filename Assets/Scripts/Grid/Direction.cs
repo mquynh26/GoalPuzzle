@@ -12,7 +12,7 @@ public enum Direction
 
 public static class DirectionExt
 {
-    /// Đổi hướng thành vector bước trên lưới (x = cột, y = hàng, y tăng là đi lên).
+    // Đổi hướng thành vector bước trên lưới
     public static Vector2Int ToVector(this Direction d)
     {
         switch (d)
@@ -24,13 +24,13 @@ public static class DirectionExt
         }
     }
 
-    /// Xoay 90 độ theo chiều kim đồng hồ (dùng cho NPC.Rotate).
+    // Xoay 90 độ theo chiều kim đồng hồ
     public static Direction RotateCW(this Direction d)
     {
         return (Direction)(((int)d + 1) % 4);
     }
 
-    /// Hướng ngược lại (dùng cho NPC.CanReceive).
+    // Hướng ngược lại
     public static Direction Opposite(this Direction d)
     {
         return (Direction)(((int)d + 2) % 4);
