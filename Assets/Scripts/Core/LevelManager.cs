@@ -50,11 +50,18 @@ public class LevelManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R)) RestartLevel();
+        // Âm thanh (M) và toàn màn hình (F) do UIManager xử lý
+        if (GameManager.Instance != null && GameManager.Instance.State == GamePhase.Playing
+            && Input.GetKeyDown(KeyCode.R))
+        {
+            RestartLevel();
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Phím dev: chỉ có trong Editor / Development Build
         if (Input.GetKeyDown(KeyCode.N)) NextLevel();
         if (Input.GetKeyDown(KeyCode.F12)) { SaveSystem.ResetProgress(); Debug.Log("Đã xóa tiến trình"); }
-        if (Input.GetKeyDown(KeyCode.M)) { GameSettings.ToggleSound(); Debug.Log("Âm thanh: " + GameSettings.IsSoundEnabled); }
-        if (Input.GetKeyDown(KeyCode.F11)) { GameSettings.ToggleFullScreen(); Debug.Log("Toàn màn hình: " + GameSettings.IsFullScreen); }
+#endif
     }
 
     // Nạp màn theo index trong database (0-based). Trả về false nếu thất bại.
@@ -123,7 +130,7 @@ public class LevelManager : MonoBehaviour
                     case CellType.NPC:
                     {
                         NPC npc = Spawn(npcPrefab, cell, Group("NPCs"), "NPC" + suffix);
-                        npc.SetFacing(Direction.Up);   // hướng ban đầu mặc định
+                        npc.SetFacing(data.GetNpcFacing(x, y));
                         npcs.Add(npc);
                         npc.Effect();
                         break;

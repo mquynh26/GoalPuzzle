@@ -8,7 +8,6 @@ public struct KickEvent
     public NPC npc;
 }
 
-/// <summary>Kết quả mô phỏng một lần bóng lăn.</summary>
 public class RollResult
 {
     public List<Vector2Int> path = new List<Vector2Int>();   // các ô bóng đi qua, theo thứ tự
@@ -21,10 +20,6 @@ public class RollResult
     public bool IsEmpty => path.Count == 0 && hitCone == null && !outOfBounds;
 }
 
-/// <summary>
-/// Chứa toàn bộ luật chơi. Chỉ TÍNH TOÁN, không di chuyển gì cả:
-/// PlayerController nhận kết quả rồi mới ra lệnh cho các đối tượng.
-/// </summary>
 public class RuleChecker : MonoBehaviour
 {
     public static RuleChecker Instance { get; private set; }
@@ -73,7 +68,8 @@ public class RuleChecker : MonoBehaviour
     }
 
     /// Mô phỏng bóng bị sút theo hướng dir từ vị trí hiện tại của nó.
-    /// Dừng khi gặp: hàng rào, cột gôn, cọc, người, NPC (từ bên hông/sau lưng), hoặc ô khung thành.
+    /// Dừng khi gặp: hàng rào, cột gôn, cọc, NPC (từ bên hông/sau lưng), hoặc ô khung thành.
+    /// Người chơi chỉ chặn nếu đứng sát bóng; xa hơn thì Ball.Roll kiểm tra lại khi bóng thật sự tới.
     /// Ra khỏi lưới thì đánh dấu outOfBounds (bóng sẽ lăn khỏi màn hình rồi xuất hiện lại ở ô cũ).
     /// Bóng đi vào ô trước mặt một NPC thì bị đá, đổi sang hướng nhìn của NPC.
     public RollResult SimulateRoll(Ball ball, Direction dir)
@@ -96,7 +92,13 @@ public class RuleChecker : MonoBehaviour
 
             // Ô bóng xuất phát vẫn đang ghi tên chính bóng nên coi như trống
             GridObject obj = g.GetAt(next);
-            if (obj != null && obj != ball)
+
+            // Người chơi có thể bước đi chỗ khác trước khi bóng lăn tới ô này, nên từ ô thứ hai trở đi
+            // không coi người là vật cản lúc tính trước. Nếu lúc bóng tới mà người vẫn đứng đó
+            // thì Ball.Roll tự dừng bóng. Ô ngay sát bóng thì người không kịp tránh nên vẫn chặn.
+            bool passableNow = obj is PlayerCharacter && result.path.Count > 0;
+
+            if (obj != null && obj != ball && !passableNow)
             {
                 if (obj is TrainingCone cone) result.hitCone = cone;   // đập cọc: cọc biến mất, bóng dừng
                 break;                                                  // hàng rào, người, NPC...: bóng dừng
@@ -132,6 +134,14 @@ public class RuleChecker : MonoBehaviour
         result.kicks.Insert(0, new KickEvent { pathIndex = -1, npc = kicker });
         return result;
     }
+    
+    public NPC FindConeKicker(TrainingCone cone)
+    {
+        NPC kicker = FindKicker(cone.posIndex);
+        if (kicker == null) return null;
+
+        return CanMoveConeTo(cone.posIndex + kicker.facing.ToVector()) ? kicker : null;
+    }
 
     // ---------- Thắng ----------
 
@@ -139,11 +149,5 @@ public class RuleChecker : MonoBehaviour
     public bool CheckWin(Ball ball)
     {
         return GridManager.Instance.IsGoal(ball.posIndex);
-    }
-
-    bool IsPermanentBlock(Vector2Int cell)
-    {
-        GridManager g = GridManager.Instance;
-        return !g.InBounds(cell) || g.GetAt(cell) is Fence;
     }
 }

@@ -2234,6 +2234,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
+  anim: {fileID: 0}
+  moveSpeed: 8
 --- !u!212 &1718153122
 SpriteRenderer:
   m_ObjectHideFlags: 0

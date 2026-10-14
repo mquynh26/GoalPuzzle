@@ -13,8 +13,12 @@ public class LevelEditorTool : EditorWindow
     [SerializeField] LevelData level;
     [SerializeField] LevelDatabase database;
     CellType brush = CellType.Fence;
+    Direction npcDir = Direction.Up;   // hướng NPC sẽ được vẽ ra
     Vector2 scroll;
     GUIStyle cellStyle;
+
+    static readonly string[] DirNames = { "↑ Lên", "→ Phải", "↓ Xuống", "← Trái" };   // khớp thứ tự enum Direction
+    static readonly string[] DirArrows = { "↑", "→", "↓", "←" };
 
     static readonly string[] BrushNames = { "Trống", "Người", "NPC", "Bóng", "Rào/Cột", "Cọc", "Gôn" };
     // Thứ tự khớp giá trị enum CellType: Empty=0, Player=1, NPC=2, Ball=3, Fence=4, Cone=5, Goal=6
@@ -49,6 +53,12 @@ public class LevelEditorTool : EditorWindow
         EditorGUILayout.Space();
 
         brush = (CellType)GUILayout.Toolbar((int)brush, BrushNames, GUILayout.Height(28));
+
+        // Chọn NPC thì hiện thêm thanh chọn hướng. Vẽ đè lên NPC có sẵn sẽ đổi hướng của nó
+        if (brush == CellType.NPC)
+        {
+            npcDir = (Direction)GUILayout.Toolbar((int)npcDir, DirNames, GUILayout.Height(24));
+        }
         EditorGUILayout.LabelField("Chuột trái: vẽ  |  Chuột phải: xóa  |  Hàng trên cùng của bảng là y lớn nhất", EditorStyles.miniLabel);
 
         scroll = EditorGUILayout.BeginScrollView(scroll);
@@ -127,13 +137,24 @@ public class LevelEditorTool : EditorWindow
             for (int x = 0; x < oldSize.x; x++)
                 old[x, y] = level.Get(x, y);
 
+        var oldFacing = new Direction[oldSize.x, oldSize.y];
+        for (int y = 0; y < oldSize.y; y++)
+            for (int x = 0; x < oldSize.x; x++)
+                oldFacing[x, y] = level.GetNpcFacing(x, y);
+
         level.gridSize = FixedSize;
         level.gridElements = new List<int>();
+        level.npcFacings = new List<int>();
         level.EnsureSize();
 
         for (int y = 0; y < Mathf.Min(oldSize.y, FixedSize.y); y++)
+        {
             for (int x = 0; x < Mathf.Min(oldSize.x, FixedSize.x); x++)
+            {
                 level.Set(x, y, old[x, y]);
+                level.SetNpcFacing(x, y, oldFacing[x, y]);
+            }
+        }
 
         EditorUtility.SetDirty(level);
     }
@@ -185,6 +206,7 @@ public class LevelEditorTool : EditorWindow
                 EditorGUI.DrawRect(r, col);
 
                 string label = LabelOf(t);
+                if (t == CellType.NPC && !ghost[x, y]) label = DirArrows[(int)level.GetNpcFacing(x, y)];   // NPC hiện mũi tên hướng nhìn
                 if (ghost[x, y]) label = label.ToLower();
                 GUI.Label(r, label, cellStyle);
             }
@@ -210,7 +232,9 @@ public class LevelEditorTool : EditorWindow
 
     void Paint(int x, int y, CellType type)
     {
-        if (level.Get(x, y) == type) return;
+        bool sameType = level.Get(x, y) == type;
+        bool sameFacing = type != CellType.NPC || level.GetNpcFacing(x, y) == npcDir;
+        if (sameType && sameFacing) return;
 
         Undo.RecordObject(level, "Vẽ ô");
 
@@ -218,6 +242,7 @@ public class LevelEditorTool : EditorWindow
         if (type == CellType.Player || type == CellType.Ball) ClearAll(type);
 
         level.Set(x, y, type);
+        if (type == CellType.NPC) level.SetNpcFacing(x, y, npcDir);
         EditorUtility.SetDirty(level);
     }
 
@@ -290,10 +315,16 @@ public class LevelEditorTool : EditorWindow
                     }
                 }
 
-                // NPC mặc định nhìn lên: bóng đặt ngay trên đầu NPC thì sẽ bị đá khi vừa xoay NPC
-                if (y < size.y - 1 && level.Get(x, y) == CellType.NPC && level.Get(x, y + 1) == CellType.Ball)
+                // Bóng nằm ngay phía trước mặt NPC thì sẽ bị đá khi người chơi xoay NPC
+                if (level.Get(x, y) == CellType.NPC)
                 {
-                    EditorGUILayout.HelpBox("Bóng đang nằm ngay phía trước NPC ở (" + x + "," + y + ") (NPC mặc định nhìn lên).", MessageType.Warning);
+                    Direction f = level.GetNpcFacing(x, y);
+                    Vector2Int front = new Vector2Int(x, y) + f.ToVector();
+                    if (front.x >= 0 && front.x < size.x && front.y >= 0 && front.y < size.y
+                        && level.Get(front.x, front.y) == CellType.Ball)
+                    {
+                        EditorGUILayout.HelpBox("Bóng đang nằm ngay phía trước NPC ở (" + x + "," + y + "), NPC đang nhìn " + DirNames[(int)f] + ".", MessageType.Warning);
+                    }
                 }
             }
         }
@@ -330,6 +361,7 @@ public class LevelEditorTool : EditorWindow
 
         Undo.RecordObject(level, "Xóa hết");
         for (int i = 0; i < level.gridElements.Count; i++) level.gridElements[i] = (int)CellType.Empty;
+        for (int i = 0; i < level.npcFacings.Count; i++) level.npcFacings[i] = (int)Direction.Up;
         EditorUtility.SetDirty(level);
     }
 

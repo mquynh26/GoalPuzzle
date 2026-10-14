@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,27 +7,26 @@ public class ImageSwitcher : MonoBehaviour
     public Sprite[] images;
     public float switchInterval = 2f;
 
-    private int currentIndex = 0;
+    int currentIndex;
 
-    void Start()
+    // Dùng OnEnable (không phải Start) vì panel bị SetActive(false) rồi bật lại nhiều lần
+    void OnEnable()
     {
-        if (targetImage == null || images == null || images.Length < 2)
-            return;
+        if (targetImage == null || images == null || images.Length < 2) return;
 
-        targetImage.sprite = images[currentIndex];
-
+        currentIndex = 0;
+        targetImage.sprite = images[0];
         InvokeRepeating(nameof(SwitchImage), switchInterval, switchInterval);
-    }
-
-    void SwitchImage()
-    {
-        currentIndex = (currentIndex + 1) % 2;
-        targetImage.sprite = images[currentIndex];
     }
 
     void OnDisable()
     {
         CancelInvoke(nameof(SwitchImage));
     }
-}
 
+    void SwitchImage()
+    {
+        currentIndex = (currentIndex + 1) % images.Length;
+        targetImage.sprite = images[currentIndex];
+    }
+}

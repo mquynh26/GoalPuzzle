@@ -9,6 +9,7 @@ public class CameraFitter : MonoBehaviour
 
     Camera cam;
     int lastW, lastH;
+    Renderer floorRenderer;   // cache, tránh GameObject.Find mỗi lần
 
     void Awake()
     {
@@ -29,10 +30,15 @@ public class CameraFitter : MonoBehaviour
     
     public void Fit()
     {
-        if (!TryGetBounds(out Bounds b)) return;
+        // Cửa sổ bị thu nhỏ: kích thước = 0, bỏ qua để tránh chia cho 0
+        if (Screen.width <= 0 || Screen.height <= 0) return;
 
+        // Ghi nhớ kích thước ngay, để Update không gọi lại Fit mỗi frame khi không tìm thấy bounds
         lastW = Screen.width;
         lastH = Screen.height;
+
+        if (!TryGetBounds(out Bounds b)) return;
+
         float aspect = (float)Screen.width / Screen.height;
 
         // Chiều cao 1 ô (lấy từ lưới, không có thì coi là 1)
@@ -71,10 +77,15 @@ public class CameraFitter : MonoBehaviour
 
         if (!has)
         {
-            GameObject floor = GameObject.Find("Floor");
-            if (floor != null && floor.TryGetComponent(out Renderer r))
+            if (floorRenderer == null)
             {
-                bounds = r.bounds;
+                GameObject floor = GameObject.Find("Floor");
+                if (floor != null) floor.TryGetComponent(out floorRenderer);
+            }
+
+            if (floorRenderer != null)
+            {
+                bounds = floorRenderer.bounds;
                 has = true;
             }
         }
