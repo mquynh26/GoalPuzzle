@@ -131,6 +131,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
+  anim: {fileID: 7781107809981896472, guid: 1f822039027035e40a3543361c7e0f86, type: 3}
+  moveSpeed: 8
 --- !u!1 &7846115316716796237
 GameObject:
   m_ObjectHideFlags: 0

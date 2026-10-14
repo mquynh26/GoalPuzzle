@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
+  anim: {fileID: 0}
   digitGap: 0
   sortingOrder: 5
   lockedColor: {r: 0.55, g: 0.55, b: 0.55, a: 1}

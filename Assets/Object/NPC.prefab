@@ -131,6 +131,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
+  anim: {fileID: 7781107809981896472, guid: 1f822039027035e40a3543361c7e0f86, type: 3}
   facing: 0
   visual: {fileID: 867313271205024011}
   animator: {fileID: 0}

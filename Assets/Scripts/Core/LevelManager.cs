@@ -112,10 +112,12 @@ public class LevelManager : MonoBehaviour
                     case CellType.Player:
                         player = Spawn(playerPrefab, cell, objectsParent, "Player");
                         player.Face(Direction.Down);
+                        player.Effect();
                         break;
 
                     case CellType.Ball:
                         ball = Spawn(ballPrefab, cell, objectsParent, "Ball");
+                        ball.Effect();
                         break;
 
                     case CellType.NPC:
@@ -123,14 +125,18 @@ public class LevelManager : MonoBehaviour
                         NPC npc = Spawn(npcPrefab, cell, Group("NPCs"), "NPC" + suffix);
                         npc.SetFacing(Direction.Up);   // hướng ban đầu mặc định
                         npcs.Add(npc);
+                        npc.Effect();
                         break;
                     }
                     case CellType.Fence:
-                        Spawn(fencePrefab, cell, Group("Fences"), "Fence" + suffix);
+                        Fence fence = Spawn(fencePrefab, cell, Group("Fences"), "Fence" + suffix);
+                        fence.Effect();
                         break;
 
                     case CellType.Cone:
-                        cones.Add(Spawn(conePrefab, cell, Group("Cones"), "Cone" + suffix));
+                        TrainingCone cone = Spawn(conePrefab, cell, Group("Cones"), "Cone" + suffix);
+                        cones.Add(cone);
+                        cone.Effect();
                         break;
 
                     case CellType.Goal:

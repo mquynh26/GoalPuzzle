@@ -5,6 +5,7 @@ using UnityEngine;
 public abstract class GridObject : MonoBehaviour
 {
     public Vector2Int posIndex;
+    public GameObject anim;
 
     SpriteRenderer sr;
     
@@ -25,5 +26,11 @@ public abstract class GridObject : MonoBehaviour
     public virtual void Show()
     {
         transform.position = WorldPosFor(posIndex);
+    }
+
+    public void Effect()
+    {
+        if (anim == null) return;
+        Instantiate(anim, WorldPosFor(posIndex), Quaternion.identity, transform);
     }
 }

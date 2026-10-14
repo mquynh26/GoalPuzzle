@@ -215,4 +215,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   posIndex: {x: 3, y: 5}
+  anim: {fileID: 7781107809981896472, guid: 1f822039027035e40a3543361c7e0f86, type: 3}
   rollSpeed: 7
+  popTime: 0.15
