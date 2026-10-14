@@ -8,8 +8,7 @@ public class ImageSwitcher : MonoBehaviour
     public float switchInterval = 2f;
 
     int currentIndex;
-
-    // Dùng OnEnable (không phải Start) vì panel bị SetActive(false) rồi bật lại nhiều lần
+    
     void OnEnable()
     {
         if (targetImage == null || images == null || images.Length < 2) return;

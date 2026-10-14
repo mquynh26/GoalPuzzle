@@ -10,11 +10,6 @@ public struct NPCState
     public Direction facing;
 }
 
-/// <summary>
-/// Ảnh chụp toàn bộ phần thay đổi được của màn chơi tại một thời điểm (Bảng 3.18).
-/// UndoManager lưu một chồng các ảnh chụp này; Undo là lấy ảnh trên cùng ra và khôi phục lại.
-/// Những thứ không bao giờ đổi trong lúc chơi (hàng rào, khung thành, kích thước lưới) thì không cần lưu.
-/// </summary>
 public class GameState
 {
     public Vector2Int playerPos;
@@ -22,7 +17,7 @@ public class GameState
 
     public Vector2Int ballPos;
 
-    // Thứ tự phần tử phải khớp thứ tự NPC trong danh sách của LevelManager (cố định suốt màn chơi)
+    // Thứ tự phần tử phải khớp thứ tự NPC trong danh sách của LevelManager
     public List<NPCState> npcs = new List<NPCState>();
 
     // Chỉ lưu các cọc còn lại. Cọc đã bị phá sẽ không có trong danh sách,

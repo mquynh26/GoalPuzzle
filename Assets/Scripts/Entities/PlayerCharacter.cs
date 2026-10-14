@@ -10,7 +10,7 @@ public class PlayerCharacter : GridObject
         if (visual == null) visual = GetComponent<FacingVisual>();
     }
 
-    /// Ô ngay phía trước mặt cầu thủ
+    // Ô ngay phía trước mặt cầu thủ
     public Vector2Int FrontCell => posIndex + facingDir.ToVector();
 
     // Quay mặt về hướng d, cầu thủ vẫn quay mặt khi bị chặn

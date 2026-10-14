@@ -9,7 +9,7 @@ public class CameraFitter : MonoBehaviour
 
     Camera cam;
     int lastW, lastH;
-    Renderer floorRenderer;   // cache, tránh GameObject.Find mỗi lần
+    Renderer floorRenderer;
 
     void Awake()
     {
@@ -30,7 +30,7 @@ public class CameraFitter : MonoBehaviour
     
     public void Fit()
     {
-        // Cửa sổ bị thu nhỏ: kích thước = 0, bỏ qua để tránh chia cho 0
+        // Cửa sổ bị thu nhỏ kích thước = 0, bỏ qua để tránh chia cho 0
         if (Screen.width <= 0 || Screen.height <= 0) return;
 
         // Ghi nhớ kích thước ngay, để Update không gọi lại Fit mỗi frame khi không tìm thấy bounds
@@ -41,10 +41,8 @@ public class CameraFitter : MonoBehaviour
 
         float aspect = (float)Screen.width / Screen.height;
 
-        // Chiều cao 1 ô (lấy từ lưới, không có thì coi là 1)
-        float cellH = (GridManager.Instance != null && GridManager.Instance.grid != null)
-            ? GridManager.Instance.grid.cellSize.y
-            : 1f;
+        // Chiều cao 1 ô
+        float cellH = (GridManager.Instance != null && GridManager.Instance.grid != null) ? GridManager.Instance.grid.cellSize.y : 1f;
 
         // Bỏ bớt mép trên
         Vector3 min = b.min;

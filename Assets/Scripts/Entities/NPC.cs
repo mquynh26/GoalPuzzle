@@ -23,20 +23,20 @@ public class NPC : GridObject
         return cell == FrontCell;
     }
 
-    /// Xoay 90° theo chiều kim đồng hồ
+    // Xoay 90° theo chiều kim đồng hồ
     public void Rotate()
     {
         SetFacing(facing.RotateCW());
     }
 
-    /// Đặt hướng trực tiếp
+    // Đặt hướng trực tiếp
     public void SetFacing(Direction d)
     {
         facing = d;
         if (visual != null) visual.Apply(d);
     }
 
-    /// Hiệu ứng sút bóng
+    // Hiệu ứng sút bóng
     public void Kick()
     {
         if (animator != null) animator.SetTrigger("Kick");

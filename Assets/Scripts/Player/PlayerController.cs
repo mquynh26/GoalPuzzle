@@ -189,7 +189,7 @@ public class PlayerController : MonoBehaviour
 
         player.posIndex = playerCell;
         g.Place(player);
-        player.Face(playerFacing);   // quay mặt và căn lại giữa ô (hủy cú trượt đang chạy)
+        player.Face(playerFacing);   // quay mặt và căn lại giữa ô
         player.Effect();
 
         ball.Respawn(ballCell);

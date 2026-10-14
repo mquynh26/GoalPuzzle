@@ -8,8 +8,7 @@ public class UndoManager : MonoBehaviour
     public static UndoManager Instance { get; private set; }
     
     public PlayerController playerController;
-
-    /// LevelManager đăng ký hai hàm này khi nạp màn
+    
     public Func<GameState> capture;
     public Action<GameState> apply;
 
@@ -28,7 +27,7 @@ public class UndoManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z)) Undo();
     }
 
-    /// Xóa toàn bộ lịch sử
+    // Xóa toàn bộ lịch sử
     public void Clear()
     {
         stack.Clear();

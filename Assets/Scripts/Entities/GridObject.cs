@@ -9,7 +9,7 @@ public abstract class GridObject : MonoBehaviour
     // Tốc độ trượt khi đổi ô (dùng cho Player và Cone)
     public float moveSpeed = 8f;
 
-    /// true trong lúc hình đang trượt sang ô mới
+    // true trong lúc hình đang trượt sang ô mới
     public bool IsMoving { get; private set; }
 
     SpriteRenderer sr;
@@ -28,8 +28,7 @@ public abstract class GridObject : MonoBehaviour
 
         return center - transform.rotation * localCenter;
     }
-
-    /// Đổi sang ô mới: ô logic đổi ngay, hình trượt dần sang ô đó
+    
     public void SlideTo(Vector2Int to)
     {
         GridManager.Instance.Move(this, to);
@@ -54,7 +53,7 @@ public abstract class GridObject : MonoBehaviour
         slide = null;
     }
 
-    /// Đặt thẳng hình về giữa ô posIndex, hủy cú trượt đang chạy
+    // Đặt thẳng hình về giữa ô posIndex
     public virtual void Show()
     {
         if (slide != null) { StopCoroutine(slide); slide = null; }

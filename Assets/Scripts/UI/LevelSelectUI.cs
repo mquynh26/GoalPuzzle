@@ -19,7 +19,7 @@ public class LevelSelectUI : MonoBehaviour
     int selected;
     int enabledFrame = -1;
 
-    // ================= Mở / làm mới =================
+    // Mở / làm mới
 
     void OnEnable()
     {
@@ -31,10 +31,9 @@ public class LevelSelectUI : MonoBehaviour
         MoveCursor();
     }
 
-    /// Dựng các ô số theo đúng số màn trong database. Trả về false nếu chưa sẵn sàng.
+    // Dựng các ô số theo đúng số màn trong database
     bool Prepare()
     {
-        // Lúc vừa nạp scene, các hệ thống khác chưa kịp chạy Awake. Lần mở thật sau đó sẽ dựng bình thường
         if (GridManager.Instance == null || LevelManager.Instance == null) return false;
 
         LevelDatabase db = LevelManager.Instance.database;
@@ -50,8 +49,7 @@ public class LevelSelectUI : MonoBehaviour
             Debug.LogError("LevelSelectUI: chưa gán Button Prefab, Cursor hoặc đủ 10 sprite chữ số.");
             return false;
         }
-
-        // Đã dựng đủ rồi thì thôi. Số màn đổi (thêm màn vào database) thì dựng lại
+        
         if (buttons.Count == db.Count) return true;
 
         ClearButtons();
@@ -74,7 +72,7 @@ public class LevelSelectUI : MonoBehaviour
         buttons.Clear();
     }
 
-    /// Cập nhật trạng thái từng ô: khóa / mở / đã xong.
+    // Cập nhật trạng thái từng ô khóa / mở / đã xong
     void RefreshStates()
     {
         LevelDatabase db = LevelManager.Instance.database;
@@ -91,7 +89,7 @@ public class LevelSelectUI : MonoBehaviour
         }
     }
 
-    /// Khung chọn bắt đầu ở màn mở cao nhất (màn mới nhất người chơi tới được).
+    // Khung chọn bắt đầu ở màn mở cao nhất
     int FindStartIndex()
     {
         for (int i = buttons.Count - 1; i >= 0; i--)
@@ -101,7 +99,7 @@ public class LevelSelectUI : MonoBehaviour
         return 0;
     }
 
-    // ================= Điều khiển =================
+    // Điều khiển
 
     void Update()
     {
@@ -119,9 +117,7 @@ public class LevelSelectUI : MonoBehaviour
     {
         return Input.GetKeyDown(a) || Input.GetKeyDown(b);
     }
-
-    /// Dịch khung chọn theo thứ tự đọc: trái/phải ±1 (hết hàng thì xuống hàng kế), lên/xuống ±số cột.
-    /// Chỉ di chuyển nếu ô đích tồn tại và đã mở.
+    
     void TryMove(int delta)
     {
         int target = selected + delta;
@@ -138,14 +134,11 @@ public class LevelSelectUI : MonoBehaviour
         UIManager.Instance.StartLevel(buttons[selected].Index);
     }
 
-    // ================= Tiện ích =================
-
     void MoveCursor()
     {
         if (cursor != null) cursor.MoveTo(CellOf(selected));
     }
-
-    /// Ô grid của màn thứ index: đi sang phải theo cột, hết hàng thì xuống hàng dưới (y giảm).
+    
     Vector2Int CellOf(int index)
     {
         return new Vector2Int(firstCell.x + index % columns, firstCell.y - index / columns);

@@ -163,7 +163,7 @@ public class GridManager : MonoBehaviour
             return;
         }
 
-        // 2) Khi đang chạy: tô màu ô bị chiếm (đỏ) và ô khung thành (xanh)
+        // ô màu ô bị chiếm đỏ và ô khung thành xanh
         Vector3 cube = new Vector3(g.cellSize.x * 0.9f, g.cellSize.y * 0.9f, 0.01f);
         for (int y = 0; y < s.y; y++)
         {
@@ -210,7 +210,7 @@ public class GridManager : MonoBehaviour
                     GridObject obj = GetAt(cell);
                     if (obj != null)
                     {
-                        string n = obj.GetType().Name;           // vd: PlayerCharacter, Ball, NPC
+                        string n = obj.GetType().Name;          
                         text += "\n" + n.Substring(0, Mathf.Min(4, n.Length));
                     }
                     else if (IsGoal(cell))

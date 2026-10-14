@@ -26,16 +26,14 @@ public class Ball : GridObject
         for (int i = 0; i < path.Count; i++)
         {
             Vector2Int cell = path[i];
-
-            // Đường được tính từ trước, nhưng người chơi có thể đã bước vào ô này trong lúc bóng lăn
+            
             GridObject other = GridManager.Instance.GetAt(cell);
             if (other != null && other != this)
             {
                 RollCompleted = false;   // bị chặn
                 break;
             }
-
-            // Chiếm ô ngay khi bắt đầu đi tới đó, để người chơi không chen vào giữa chừng
+            
             GridManager.Instance.Move(this, cell);
 
             Vector3 target = WorldPosFor(cell);
@@ -62,7 +60,7 @@ public class Ball : GridObject
             yield return null;
         }
 
-        SetVisible(false);   // đã ra khỏi màn hình: biến mất
+        SetVisible(false);   // đã ra khỏi màn hình thì biến mất
     }
 
     /// Bóng xuất hiện lại ở ô cell
