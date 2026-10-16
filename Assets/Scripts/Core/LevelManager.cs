@@ -27,7 +27,7 @@ public class LevelManager : MonoBehaviour
     public bool HasNext => database != null && database.HasLevel(CurrentIndex + 1);
 
     PlayerCharacter player;
-    Ball ball;
+    readonly List<Ball> balls = new List<Ball>();
     readonly List<NPC> npcs = new List<NPC>();
     readonly List<TrainingCone> cones = new List<TrainingCone>();
     readonly List<Vector2Int> goalCenters = new List<Vector2Int>();
@@ -61,6 +61,7 @@ public class LevelManager : MonoBehaviour
         // Phím dev: chỉ có trong Editor / Development Build
         if (Input.GetKeyDown(KeyCode.N)) NextLevel();
         if (Input.GetKeyDown(KeyCode.F12)) { SaveSystem.ResetProgress(); Debug.Log("Đã xóa tiến trình"); }
+        if (Input.GetKeyDown(KeyCode.F10)) { SaveSystem.UnlockUpTo(30); }
 #endif
     }
 
@@ -123,8 +124,9 @@ public class LevelManager : MonoBehaviour
                         break;
 
                     case CellType.Ball:
-                        ball = Spawn(ballPrefab, cell, objectsParent, "Ball");
-                        ball.Effect();
+                        Ball newBall = Spawn(ballPrefab, cell, objectsParent, "Ball" + suffix);
+                        balls.Add(newBall);
+                        newBall.Effect();
                         break;
 
                     case CellType.NPC:
@@ -155,14 +157,14 @@ public class LevelManager : MonoBehaviour
 
         BuildGoals();
 
-        if (player == null || ball == null)
+        if (player == null || balls.Count == 0)
         {
-            Debug.LogError("LevelManager: màn " + data.name + " thiếu Player hoặc Ball!");
+            Debug.LogError("LevelManager: màn " + data.name + " thiếu Player hoặc Ball (cần ít nhất 1 bóng)!");
             return false;
         }
 
         playerController.player = player;
-        playerController.ball = ball;
+        playerController.balls = balls;
         
         //Undo
         UndoManager.Instance.capture = Capture;
@@ -238,7 +240,7 @@ public class LevelManager : MonoBehaviour
         cones.Clear();
         goalCenters.Clear();
         player = null;
-        ball = null;
+        balls.Clear();
     }
 
     // Nhóm con của Objects
@@ -270,7 +272,7 @@ public class LevelManager : MonoBehaviour
         var s = new GameState();
         s.playerPos = player.posIndex;
         s.playerFacing = player.facingDir;
-        s.ballPos = ball.posIndex;
+        foreach (Ball b in balls) s.ballPositions.Add(b.posIndex);
         foreach (NPC n in npcs) s.npcs.Add(new NPCState { pos = n.posIndex, facing = n.facing });
         foreach (TrainingCone c in cones) s.cones.Add(c.posIndex);
         return s;
@@ -283,7 +285,7 @@ public class LevelManager : MonoBehaviour
 
         // gỡ mọi vật thể thay đổi được khỏi bảng ô bị chiếm
         g.Remove(player);
-        g.Remove(ball);
+        foreach (Ball b in balls) g.Remove(b);
         foreach (NPC n in npcs) g.Remove(n);
         foreach (TrainingCone c in cones) { g.Remove(c); Destroy(c.gameObject); }
         cones.Clear();
@@ -294,9 +296,12 @@ public class LevelManager : MonoBehaviour
         g.Place(player);
         player.Show();
 
-        ball.posIndex = s.ballPos;
-        g.Place(ball);
-        ball.Show();
+        for (int i = 0; i < balls.Count; i++)
+        {
+            balls[i].posIndex = s.ballPositions[i];
+            g.Place(balls[i]);
+            balls[i].Show();
+        }
 
         for (int i = 0; i < npcs.Count; i++)
         {

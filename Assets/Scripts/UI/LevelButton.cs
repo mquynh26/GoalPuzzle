@@ -11,6 +11,7 @@ public enum LevelState
 
 public class LevelButton : GridObject
 {
+    protected override bool SortByY => false;
     public float digitGap = 0f;
     public int sortingOrder = 5;
     

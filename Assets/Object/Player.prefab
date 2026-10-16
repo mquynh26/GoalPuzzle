@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7954385288338906404}
   - component: {fileID: 3781212217782601509}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -48,9 +48,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
   anim: {fileID: 7781107809981896472, guid: 1f822039027035e40a3543361c7e0f86, type: 3}
+  moveSpeed: 6
+  sortRenderer: {fileID: 0}
+  baseSortingOrder: 0
+  sortingPrecision: 100
+  sortingOffset: 3000
   facingDir: 2
   visual: {fileID: 922392520475805132}
-  moveSpeed: 8
+  animator: {fileID: 486599293941799592}
+  kickLockTime: 0.3
 --- !u!1 &3172110142218676186
 GameObject:
   m_ObjectHideFlags: 0
@@ -62,7 +68,8 @@ GameObject:
   - component: {fileID: 4245574086277877861}
   - component: {fileID: 9114081783727799663}
   - component: {fileID: 922392520475805132}
-  m_Layer: 0
+  - component: {fileID: 486599293941799592}
+  m_Layer: 7
   m_Name: Render
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -148,12 +155,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b70949df3ad12b46b6fe057d6c2cec0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mode: 0
+  mode: 2
   sprites:
   - {fileID: -527199472, guid: be3b6885c5fbad24285f95bcd82bef90, type: 3}
   - {fileID: 332067982, guid: 92dd26efac8a86347b9be80c6ffbb2ef, type: 3}
   - {fileID: -2049709796, guid: d3001bfe5a2373842bc6dd70c489f17f, type: 3}
   - {fileID: 1401935606, guid: cf27eaf6d07c0ac40ba693e4cd6b7f1c, type: 3}
+  animator: {fileID: 486599293941799592}
+--- !u!95 &486599293941799592
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3172110142218676186}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ec6de060045f5a84184f28556057867b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5194039245117230919
 GameObject:
   m_ObjectHideFlags: 0

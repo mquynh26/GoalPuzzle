@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public PlayerCharacter player;
-    public Ball ball;
+    public List<Ball> balls = new List<Ball>();   // 1 màn có thể có nhiều bóng, phải đưa hết vào gôn mới thắng
     
     public float respawnDelay = 0.4f;
 
@@ -13,25 +14,33 @@ public class PlayerController : MonoBehaviour
 
     bool busy;          // true khi bóng đang lăn
     bool coneKicking;   // true khi cọc đang bị NPC đá
+    bool ballKicking;   // true khi NPC đang đá lần lượt các bóng nằm yên
 
-    public bool IsBusy => busy || coneKicking;
+    public bool IsBusy => busy || coneKicking || ballKicking;
 
     // Dừng mọi thứ đang chạy và mở khóa input
     public void ResetState()
     {
         StopAllCoroutines();
+        if (player != null) player.CancelKick();
         busy = false;
         coneKicking = false;
+        ballKicking = false;
     }
 
     void Update()
     {
         if (!IsPlaying() || player == null) return;
-        if (player.IsMoving) return;   // đang bước
+        if (player.IsMoving) return;
+        if (player.IsKicking) return;     // đang đá, không làm gì khác
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (!IsBusy) HandleShoot();  // bóng đang lăn thì không sút
+            if (!IsBusy)
+            {
+                player.Kick();
+                HandleShoot();
+            }
             return;
         }
 
@@ -60,13 +69,14 @@ public class PlayerController : MonoBehaviour
         player.SlideTo(target);
     }
 
-    // ---------- Sút ----------
+    // Sút
 
     void HandleShoot()
     {
         Direction dir = player.facingDir;
         GridObject target = GridManager.Instance.GetAt(player.FrontCell);
-
+        player.Kick();
+        
         if (target is Ball b)
         {
             ShootBall(b, dir);
@@ -85,9 +95,8 @@ public class PlayerController : MonoBehaviour
     {
         RollResult result = RuleChecker.Instance.SimulateRoll(b, dir);
         if (result.IsEmpty) return;
-
         RecordUndo();
-        StartCoroutine(RunRoll(result));
+        StartCoroutine(RunRollRoutine(b, result));
     }
 
     void RotateNPC(NPC npc)
@@ -99,11 +108,33 @@ public class PlayerController : MonoBehaviour
         if (GridManager.Instance.GetAt(npc.FrontCell) is TrainingCone frontCone) StartCoroutine(KickConeRoutine(frontCone));
 
         // Sau khi xoay, nếu bóng đang nằm yên ngay trước mặt một NPC thì NPC đá bóng đi
-        if (ball != null)
+        if (balls.Count > 0) StartCoroutine(RestingKicksRoutine());
+    }
+
+    // Các bóng nằm yên trước mặt NPC được đá lần lượt từng quả (tính lại đường lăn ngay trước mỗi cú đá,
+    // vì quả trước có thể đã đổi vị trí và chặn đường quả sau)
+    IEnumerator RestingKicksRoutine()
+    {
+        ballKicking = true;
+
+        foreach (Ball b in new List<Ball>(balls))
         {
-            RollResult kick = RuleChecker.Instance.ResolveRestingKick(ball);
-            if (kick != null) StartCoroutine(RunRoll(kick));
+            if (b == null) continue;
+
+            while (busy) yield return null;   // chờ cú lăn trước xong
+
+            RollResult kick = RuleChecker.Instance.ResolveRestingKick(b);
+            if (kick == null) continue;
+
+            yield return RunRoll(b, kick);
         }
+
+        ballKicking = false;
+    }
+
+    IEnumerator RunRollRoutine(Ball ball, RollResult result)
+    {
+        yield return RunRoll(ball, result);
     }
 
     void PushCone(TrainingCone cone, Direction dir)
@@ -124,7 +155,7 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < MaxConeKicks; i++)
         {
             while (cone != null && cone.IsMoving) yield return null;
-            if (cone == null) break;   // cọc đã biến mất (bóng đập, Undo...)
+            if (cone == null) break;   // cọc đã biến mất
 
             NPC kicker = RuleChecker.Instance.FindConeKicker(cone);
             if (kicker == null) break;
@@ -136,7 +167,7 @@ public class PlayerController : MonoBehaviour
         coneKicking = false;
     }
 
-    IEnumerator RunRoll(RollResult result)
+    IEnumerator RunRoll(Ball ball, RollResult result)
     {
         busy = true;
 
@@ -160,26 +191,26 @@ public class PlayerController : MonoBehaviour
             }
         });
 
-        if (result.outOfBounds && ball.RollCompleted)
+        if (result.outOfBounds)
         {
             // Bóng ra khỏi lưới
             yield return ball.RollOffScreen(result.exitDir);
             yield return new WaitForSeconds(respawnDelay);
-            ResetPositions(playerStart, playerFacing, ballStart);
+            ResetPositions(ball, playerStart, playerFacing, ballStart);
         }
-        else if (ball.RollCompleted && result.hitCone != null)
+        else if (result.hitCone != null)
         {
             // Bóng đập cọc
             result.hitCone.Disappear();
         }
 
-        if (RuleChecker.Instance.CheckWin(ball)) OnWin();
+        if (RuleChecker.Instance.CheckWin(balls)) OnWin();   // thắng khi tất cả bóng đã vào gôn
 
         busy = false;
     }
 
     // Đặt lại cả người và bóng về vị trí cũ, mỗi vật thể phát effect của GridObject
-    void ResetPositions(Vector2Int playerCell, Direction playerFacing, Vector2Int ballCell)
+    void ResetPositions(Ball ball, Vector2Int playerCell, Direction playerFacing, Vector2Int ballCell)
     {
         GridManager g = GridManager.Instance;
 

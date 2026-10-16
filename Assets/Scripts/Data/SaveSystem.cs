@@ -52,6 +52,14 @@ public static class SaveSystem
         data = new SaveData();
         Save();
     }
+    
+    public static void UnlockUpTo(int levelID)
+    {
+        if (levelID <= Data.highestUnlockedLevel) return;
+
+        Data.highestUnlockedLevel = levelID;
+        Save();
+    }
 
     static void Load()
     {

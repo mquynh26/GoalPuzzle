@@ -15,6 +15,14 @@ public abstract class GridObject : MonoBehaviour
     SpriteRenderer sr;
     Coroutine slide;
 
+    public SpriteRenderer sortRenderer;
+    public int baseSortingOrder = 0;      // cộng thêm để ưu tiên khi cùng hàng (ví dụ Ball = 1)
+    public int sortingPrecision = 100;    // độ mịn: 100 = phân biệt được 0,01 đơn vị world
+    public int sortingOffset = 3000; 
+    
+    // Lớp con tắt sắp xếp theo Y bằng cách override thành false
+    protected virtual bool SortByY => true;
+
     public Vector3 WorldPosFor(Vector2Int cell)
     {
         Vector3 center = GridManager.Instance.CellToWorld(cell);
@@ -28,7 +36,7 @@ public abstract class GridObject : MonoBehaviour
 
         return center - transform.rotation * localCenter;
     }
-    
+
     public void SlideTo(Vector2Int to)
     {
         GridManager.Instance.Move(this, to);
@@ -65,5 +73,18 @@ public abstract class GridObject : MonoBehaviour
     {
         if (anim == null) return;
         Instantiate(anim, WorldPosFor(posIndex), Quaternion.identity, transform);
+    }
+
+    protected virtual void LateUpdate()
+    {
+        if (!SortByY) return;
+
+        // SpriteRenderer nằm ở object con
+        if (sortRenderer == null) sortRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (sortRenderer == null) return;
+
+        // y thấp hơn -> sortingOrder cao hơn -> vẽ đè lên
+        float y = sortRenderer.bounds.center.y;
+        sortRenderer.sortingOrder = baseSortingOrder + sortingOffset - Mathf.RoundToInt(y * sortingPrecision);
     }
 }

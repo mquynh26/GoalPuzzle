@@ -130,3 +130,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
+  anim: {fileID: 0}
+  moveSpeed: 8
+  sortRenderer: {fileID: 0}
+  baseSortingOrder: 0
+  sortingPrecision: 100
+  sortingOffset: 2

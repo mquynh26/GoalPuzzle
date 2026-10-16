@@ -127,9 +127,16 @@ public class RuleChecker : MonoBehaviour
         return CanMoveConeTo(cone.posIndex + kicker.facing.ToVector()) ? kicker : null;
     }
 
-    // Bóng đang nằm trong ô khung thành
-    public bool CheckWin(Ball ball)
+    // Thắng khi tất cả bóng của màn đều nằm trong ô khung thành
+    public bool CheckWin(IList<Ball> balls)
     {
-        return GridManager.Instance.IsGoal(ball.posIndex);
+        if (balls == null || balls.Count == 0) return false;
+
+        GridManager g = GridManager.Instance;
+        foreach (Ball b in balls)
+        {
+            if (b == null || !g.IsGoal(b.posIndex)) return false;
+        }
+        return true;
     }
 }

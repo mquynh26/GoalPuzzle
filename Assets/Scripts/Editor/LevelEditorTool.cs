@@ -239,7 +239,7 @@ public class LevelEditorTool : EditorWindow
         Undo.RecordObject(level, "Vẽ ô");
 
         // Người và Bóng mỗi màn chỉ có một: vẽ ô mới thì xóa ô cũ
-        if (type == CellType.Player || type == CellType.Ball) ClearAll(type);
+        if (type == CellType.Player) ClearAll(type);
 
         level.Set(x, y, type);
         if (type == CellType.NPC) level.SetNpcFacing(x, y, npcDir);
@@ -291,7 +291,9 @@ public class LevelEditorTool : EditorWindow
         Vector2Int size = level.gridSize;
 
         if (players != 1) EditorGUILayout.HelpBox("Cần đúng 1 Người (đang có " + players + ").", MessageType.Error);
-        if (balls != 1) EditorGUILayout.HelpBox("Cần đúng 1 Bóng (đang có " + balls + ").", MessageType.Error);
+        if (balls < 1) EditorGUILayout.HelpBox("Cần ít nhất 1 Bóng. Màn có nhiều bóng thì phải đưa hết vào gôn mới thắng.", MessageType.Error);
+        else if (goals >= 1 && balls > goals * (GoalLayout.HalfWidth * 2 - 1))
+            EditorGUILayout.HelpBox("Có " + balls + " bóng nhưng gôn chỉ chứa tối đa " + goals * (GoalLayout.HalfWidth * 2 - 1) + " bóng (mỗi gôn 3 ô ghi bàn). Màn sẽ không thể thắng.", MessageType.Error);
         if (goals < 1) EditorGUILayout.HelpBox("Cần ít nhất 1 ô Gôn: vẽ 1 ô ở giữa gôn, 2 ô mỗi bên sẽ tự thành cột và ô ghi bàn.", MessageType.Error);
 
         for (int y = 0; y < size.y; y++)

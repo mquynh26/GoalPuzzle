@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4562796278909349707}
   - component: {fileID: 6319786438639337146}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Render
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4581574828286798505}
   - component: {fileID: 7694325492125356306}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TrainingCone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -114,8 +114,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6756228267473422145}
   - {fileID: 4562796278909349707}
+  - {fileID: 6756228267473422145}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7694325492125356306
@@ -133,6 +133,10 @@ MonoBehaviour:
   posIndex: {x: 0, y: 0}
   anim: {fileID: 7781107809981896472, guid: 1f822039027035e40a3543361c7e0f86, type: 3}
   moveSpeed: 8
+  sortRenderer: {fileID: 0}
+  baseSortingOrder: 0
+  sortingPrecision: 100
+  sortingOffset: 3000
 --- !u!1 &7846115316716796237
 GameObject:
   m_ObjectHideFlags: 0

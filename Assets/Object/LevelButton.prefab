@@ -46,8 +46,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
   anim: {fileID: 0}
-  digitGap: 0
+  moveSpeed: 8
+  sortRenderer: {fileID: 0}
+  baseSortingOrder: 0
+  sortingPrecision: 100
+  sortingOffset: 3000
+  digitGap: -0.1
   sortingOrder: 5
   lockedColor: {r: 0.55, g: 0.55, b: 0.55, a: 1}
   openColor: {r: 1, g: 1, b: 1, a: 1}
-  completedColor: {r: 1, g: 1, b: 1, a: 1}
+  completedColor: {r: 0, g: 0.9811321, b: 0.9258509, a: 1}

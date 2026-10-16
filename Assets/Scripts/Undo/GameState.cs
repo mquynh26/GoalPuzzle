@@ -15,7 +15,8 @@ public class GameState
     public Vector2Int playerPos;
     public Direction playerFacing;
 
-    public Vector2Int ballPos;
+    // Thứ tự phần tử phải khớp thứ tự bóng trong danh sách của LevelManager
+    public List<Vector2Int> ballPositions = new List<Vector2Int>();
 
     // Thứ tự phần tử phải khớp thứ tự NPC trong danh sách của LevelManager
     public List<NPCState> npcs = new List<NPCState>();

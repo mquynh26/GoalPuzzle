@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6315937762626446154}
   - component: {fileID: 2646185473468709992}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: NPC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -132,6 +132,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   posIndex: {x: 0, y: 0}
   anim: {fileID: 7781107809981896472, guid: 1f822039027035e40a3543361c7e0f86, type: 3}
+  moveSpeed: 8
+  sortRenderer: {fileID: 0}
+  baseSortingOrder: 0
+  sortingPrecision: 100
+  sortingOffset: 3000
   facing: 0
   visual: {fileID: 867313271205024011}
   animator: {fileID: 0}
@@ -146,7 +151,8 @@ GameObject:
   - component: {fileID: 7072982068306233553}
   - component: {fileID: 2061012013577178148}
   - component: {fileID: 867313271205024011}
-  m_Layer: 0
+  - component: {fileID: 1672069159388413123}
+  m_Layer: 7
   m_Name: Render
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -232,9 +238,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b70949df3ad12b46b6fe057d6c2cec0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mode: 0
+  mode: 2
   sprites:
   - {fileID: 17530106, guid: 37481f6d17c4913489e1c6ef285cc1cd, type: 3}
   - {fileID: -1803285898, guid: 5efbcc21290746441a716a0b11aed0ad, type: 3}
   - {fileID: -569741765, guid: 9f9dbee256368344988fb44ffb2a9011, type: 3}
   - {fileID: 1755493311, guid: 8d73a43d3c8192b42be9066595761be5, type: 3}
+  animator: {fileID: 1672069159388413123}
+--- !u!95 &1672069159388413123
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8970253420759444964}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d13e00b9fc85abe47be74ed4002d76ae, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
