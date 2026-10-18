@@ -6,7 +6,7 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
-    
+    public static event Action<int> LevelIndex;
     public LevelDatabase database;
     public int startLevelIndex = 0;
     public bool autoLoadOnStart = true;
@@ -101,7 +101,9 @@ public class LevelManager : MonoBehaviour
     {
         playerController.ResetState();   // dừng bóng đang lăn, mở khóa input
         ClearObjects();
-
+        LevelIndex?.Invoke(data.levelID);
+        AudioManager.Play(Sfx.Undo);
+        
         CurrentIndex = index;
         CurrentData = data;
 
@@ -295,12 +297,14 @@ public class LevelManager : MonoBehaviour
         player.Face(s.playerFacing);
         g.Place(player);
         player.Show();
+        player.Effect();
 
         for (int i = 0; i < balls.Count; i++)
         {
             balls[i].posIndex = s.ballPositions[i];
             g.Place(balls[i]);
             balls[i].Show();
+            balls[i].Effect();
         }
 
         for (int i = 0; i < npcs.Count; i++)
@@ -314,7 +318,8 @@ public class LevelManager : MonoBehaviour
         //Tạo lại các cọc còn lại
         foreach (Vector2Int pos in s.cones)
         {
-            cones.Add(Spawn(conePrefab, pos, Group("Cones"), "Cone_" + pos.x + "_" + pos.y));
+            TrainingCone cone = Spawn(conePrefab, pos, Group("Cones"), "Cone_" + pos.x + "_" + pos.y);
+            cones.Add(cone);
         }
     }
 

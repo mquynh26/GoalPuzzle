@@ -28,10 +28,37 @@ public class NPC : GridObject
         return cell == FrontCell;
     }
 
-    // Xoay 90° theo chiều kim đồng hồ
-    public void Rotate()
+    // Ô này NPC có thể quay mặt về hướng đó không (chỉ chặn bởi Fence/cột gôn và NPC khác)
+    bool CanFace(Direction d)
     {
-        SetFacing(facing.RotateCW());
+        GridObject obj = GridManager.Instance.GetAt(posIndex + d.ToVector());
+        return !(obj is Fence) && !(obj is NPC);
+    }
+
+    // Tìm hướng tiếp theo theo chiều kim đồng hồ mà không bị Fence/NPC chặn.
+    // Trả về false nếu cả 3 hướng còn lại đều bị chặn (không quay được)
+    public bool TryGetNextFacing(out Direction next)
+    {
+        Direction d = facing;
+        for (int i = 0; i < 3; i++)
+        {
+            d = d.RotateCW();
+            if (CanFace(d))
+            {
+                next = d;
+                return true;
+            }
+        }
+        next = facing;
+        return false;
+    }
+
+    // Xoay sang hướng hợp lệ kế tiếp theo chiều kim đồng hồ. Trả về true nếu có quay
+    public bool Rotate()
+    {
+        if (!TryGetNextFacing(out Direction next)) return false;
+        SetFacing(next);
+        return true;
     }
 
     // Đặt hướng trực tiếp

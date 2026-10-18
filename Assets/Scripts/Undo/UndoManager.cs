@@ -47,7 +47,7 @@ public class UndoManager : MonoBehaviour
         if (!CanUndo || apply == null) return;
         if (playerController != null && playerController.IsBusy) return;   // bóng đang lăn không Undo
         if (GameManager.Instance != null && GameManager.Instance.State != GamePhase.Playing) return;
-
+        AudioManager.Play(Sfx.Undo);
         apply(stack.Pop());
     }
 }

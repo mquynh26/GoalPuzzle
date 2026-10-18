@@ -12,11 +12,14 @@ public class RollResult
 {
     public List<Vector2Int> path = new List<Vector2Int>();   // các ô bóng đi qua, theo thứ tự
     public TrainingCone hitCone;                             // cọc bị bóng đập 
+    public Ball hitBall;                                     // bị bóng khác va vào
+    public bool hitFence;                                    // bóng đập hàng rào / cột gôn
+    public Direction hitDir;                                 // hướng bóng này đang lăn lúc va vào hitBall
     public List<KickEvent> kicks = new List<KickEvent>();    // các cú đá của NPC
     public bool outOfBounds;                                 // bóng đã lăn ra khỏi lưới
     public Direction exitDir;                                // hướng bóng đang lăn lúc ra khỏi lưới
     
-    public bool IsEmpty => path.Count == 0 && hitCone == null && !outOfBounds;
+    public bool IsEmpty => path.Count == 0 && hitCone == null && hitBall == null && !outOfBounds;
 }
 
 public class RuleChecker : MonoBehaviour
@@ -68,11 +71,11 @@ public class RuleChecker : MonoBehaviour
         var result = new RollResult();
         Vector2Int cur = ball.posIndex;
         int kickCount = 0;
-
+ 
         for (int step = 0; step < MaxSteps; step++)
         {
             Vector2Int next = cur + dir.ToVector();
-
+ 
             if (!g.InBounds(next))
             {
                 result.outOfBounds = true;
@@ -83,18 +86,24 @@ public class RuleChecker : MonoBehaviour
             GridObject obj = g.GetAt(next);
             
             bool passableNow = obj is PlayerCharacter && result.path.Count > 0;
-
+ 
             if (obj != null && obj != ball && !passableNow)
             {
-                if (obj is TrainingCone cone) result.hitCone = cone;   // đập cọc
-                break;                                                  // hàng rào, người, NPC
+                if (obj is TrainingCone cone) result.hitCone = cone;  // đập cọc
+                else if (obj is Fence) result.hitFence = true;
+                else if (obj is Ball other) // va vào bóng khác: bóng này dừng, bóng kia lăn tiếp
+                {
+                    result.hitBall = other;
+                    result.hitDir = dir;
+                }
+                break; // hàng rào, người, NPC
             }
-
+ 
             result.path.Add(next);
             cur = next;
-
+ 
             if (g.IsGoal(cur)) break;                                   // vào khung thành
-
+ 
             NPC kicker = FindKicker(cur);
             if (kicker != null)
             {
@@ -103,7 +112,7 @@ public class RuleChecker : MonoBehaviour
                 dir = kicker.facing;                                    // bị đá đi theo hướng NPC nhìn
             }
         }
-
+ 
         return result;
     }
     

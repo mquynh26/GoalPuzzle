@@ -1,33 +1,44 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelSelectUI : MonoBehaviour
 {
-    [Header("Prefab và hình")]
+    public static event Action<int> LevelSelected;
     public LevelButton buttonPrefab;
     public LevelCursor cursor;
     [Tooltip("10 sprite chữ số theo đúng thứ tự 0, 1, 2, ... 9")]
     public Sprite[] digits = new Sprite[10];
-
-    [Header("Bố cục trên lưới")]
-    [Tooltip("Ô grid của màn 01 (góc trên trái của bảng). Xem số ô bằng khung debug của GridManager.")]
+    
     public Vector2Int firstCell = new Vector2Int(2, 4);
     public int columns = 10;
 
     readonly List<LevelButton> buttons = new List<LevelButton>();
-    int selected;
+    int select = 0;
+    int currentSelected = -1;
     int enabledFrame = -1;
 
     // Mở / làm mới
+    void Awake()
+    {
+        LevelManager.LevelIndex += SetCurrentIndex;
+    }
 
+    void OnDestroy()
+    {
+        LevelManager.LevelIndex -= SetCurrentIndex;
+    }
+    
     void OnEnable()
     {
         enabledFrame = Time.frameCount;   // bỏ qua phím của chính khung hình vừa mở bảng
-
         if (!Prepare()) return;
         RefreshStates();
-        selected = FindStartIndex();
+        if (currentSelected >= 0 && currentSelected < buttons.Count)
+        {
+            select = currentSelected;
+        } else select = StartIndex();
         MoveCursor();
     }
 
@@ -90,7 +101,7 @@ public class LevelSelectUI : MonoBehaviour
     }
 
     // Khung chọn bắt đầu ở màn mở cao nhất
-    int FindStartIndex()
+    int StartIndex()
     {
         for (int i = buttons.Count - 1; i >= 0; i--)
         {
@@ -120,27 +131,34 @@ public class LevelSelectUI : MonoBehaviour
     
     void TryMove(int delta)
     {
-        int target = selected + delta;
+        int target = select + delta;
         if (target < 0 || target >= buttons.Count) return;
         if (!buttons[target].IsSelectable) return;
 
-        selected = target;
+        select = target;
         MoveCursor();
     }
 
     void EnterSelected()
     {
-        if (!buttons[selected].IsSelectable) return;
-        UIManager.Instance.StartLevel(buttons[selected].Index);
+        if (!buttons[select].IsSelectable) return;
+        UIManager.Instance.StartLevel(buttons[select].Index);
     }
 
     void MoveCursor()
     {
-        if (cursor != null) cursor.MoveTo(CellOf(selected));
+        if (cursor != null) cursor.MoveTo(CellOf(select));
+        AudioManager.Play(Sfx.MenuMove);
+        LevelSelected?.Invoke(select + 1);
     }
     
     Vector2Int CellOf(int index)
     {
         return new Vector2Int(firstCell.x + index % columns, firstCell.y - index / columns);
+    }
+
+    void SetCurrentIndex(int index)
+    {
+        currentSelected = index - 1;
     }
 }

@@ -36,7 +36,7 @@ public class UIManager : MonoBehaviour
     {
         GamePhase p = GameManager.Instance.State;
         
-        if (Input.GetKeyDown(KeyCode.M)) SetSound(!GameSettings.IsSoundEnabled);
+        if (Input.GetKeyDown(KeyCode.M)) GameSettings.CycleSound();
 
         if (Input.GetKeyDown(KeyCode.F)) SetFullScreen(!GameSettings.IsFullScreen);
 

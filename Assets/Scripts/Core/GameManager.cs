@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
         if (State != GamePhase.Playing) return;   // tránh gọi hai lần
 
         SetPhase(GamePhase.Win);                  // khóa phím trong lúc chờ
+        AudioManager.Play(Sfx.Win);
 
         LevelManager lm = LevelManager.Instance;
         if (lm == null) return;

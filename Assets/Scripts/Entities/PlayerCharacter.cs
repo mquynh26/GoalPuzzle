@@ -41,7 +41,6 @@ public class PlayerCharacter : GridObject
         if (animator == null) return;
         if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Idle")) return;
         if (animator.IsInTransition(0)) return;
-
         animator.SetTrigger(KickHash);
         kickUntil = Time.time + kickLockTime;
     }
