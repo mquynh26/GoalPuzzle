@@ -304,6 +304,7 @@ public class LevelManager : MonoBehaviour
             balls[i].posIndex = s.ballPositions[i];
             g.Place(balls[i]);
             balls[i].Show();
+            balls[i].ResetVisual();
             balls[i].Effect();
         }
 

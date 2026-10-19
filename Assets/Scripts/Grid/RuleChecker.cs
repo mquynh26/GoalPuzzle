@@ -71,7 +71,7 @@ public class RuleChecker : MonoBehaviour
         var result = new RollResult();
         Vector2Int cur = ball.posIndex;
         int kickCount = 0;
- 
+        if (g.IsGoal(ball.posIndex)) return result;
         for (int step = 0; step < MaxSteps; step++)
         {
             Vector2Int next = cur + dir.ToVector();

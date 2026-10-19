@@ -50,4 +50,12 @@ public class UndoManager : MonoBehaviour
         AudioManager.Play(Sfx.Undo);
         apply(stack.Pop());
     }
+    
+    public bool ForceUndo()
+    {
+        if (!CanUndo || apply == null) return false;
+
+        apply(stack.Pop());
+        return true;
+    }
 }

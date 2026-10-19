@@ -90,6 +90,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (target is TrainingCone cone)
         {
+            AudioManager.Play(Sfx.Cone);
             PushCone(cone, dir);
         }
         else if (target is Fence) AudioManager.Play(Sfx.Fence);
@@ -145,7 +146,6 @@ public class PlayerController : MonoBehaviour
     {
         Vector2Int to = cone.posIndex + dir.ToVector();
         if (!RuleChecker.Instance.CanMoveConeTo(to)) return;
-        AudioManager.Play(Sfx.Cone);
         RecordUndo();
         cone.SlideTo(to);
         StartCoroutine(KickConeRoutine(cone));   // cọc trượt vào ô xong, nếu ô đó nằm trước mặt NPC thì bị đá tiếp
@@ -209,6 +209,12 @@ public class PlayerController : MonoBehaviour
             AudioManager.Play(Sfx.Out);
             yield return ball.RollOffScreen(result.exitDir);
             yield return new WaitForSeconds(respawnDelay);
+
+            if (UndoManager.Instance != null && UndoManager.Instance.ForceUndo())
+            {
+                ResetState();   // dừng các cú đá / lăn còn dang dở và mở khóa input
+                yield break;
+            }
             ResetPositions(ball, playerStart, playerFacing, ballStart);
         }
         else if (result.hitCone != null)

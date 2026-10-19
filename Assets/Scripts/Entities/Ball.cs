@@ -100,6 +100,12 @@ public class Ball : GridObject
             Show();
         }
 
+        public void ResetVisual()
+        {
+            SetVisible(true);
+            isRolling = false;
+        }
+        
         void SetVisible(bool visible)
         {
             if (renderers == null) return;
